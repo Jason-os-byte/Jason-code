@@ -15,6 +15,8 @@
     clippy::unused_self
 )]
 mod init;
+mod config_provider;
+use config_provider::apply_provider_config_from_files;
 mod input;
 mod render;
 
@@ -327,6 +329,9 @@ type RuntimePluginStateBuildOutput = (
 );
 
 fn main() {
+    apply_provider_config_from_files();
+    // Load provider configurations from settings files first
+    apply_provider_config_from_files();
     if let Err(error) = run() {
         let message = error.to_string();
         // When --output-format json is active, emit errors as JSON so downstream
@@ -14757,12 +14762,18 @@ mod tests {
         // given
         let prompt = "Review this";
         let piped = "fn main() { println!(\"hi\"); }\n";
+    apply_provider_config_from_files();
+    // Load provider configurations from settings files first
+    apply_provider_config_from_files();
 
         // when
         let merged = merge_prompt_with_stdin(prompt, Some(piped));
 
         // then
         assert_eq!(merged, "Review this\n\nfn main() { println!(\"hi\"); }");
+    apply_provider_config_from_files();
+    // Load provider configurations from settings files first
+    apply_provider_config_from_files();
     }
 
     #[test]

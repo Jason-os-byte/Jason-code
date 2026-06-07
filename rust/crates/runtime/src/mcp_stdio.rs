@@ -391,7 +391,7 @@ impl McpServerManagerError {
                 method,
                 source,
             } => BTreeMap::from([
-                ("server".to_string(), server_name.clone()),
+                ("server".to_string(), server_name.to_string()),
                 ("method".to_string(), (*method).to_string()),
                 ("io_kind".to_string(), source.kind().to_string()),
             ]),
@@ -400,7 +400,7 @@ impl McpServerManagerError {
                 method,
                 error,
             } => BTreeMap::from([
-                ("server".to_string(), server_name.clone()),
+                ("server".to_string(), server_name.to_string()),
                 ("method".to_string(), (*method).to_string()),
                 ("jsonrpc_code".to_string(), error.code.to_string()),
             ]),
@@ -409,7 +409,7 @@ impl McpServerManagerError {
                 method,
                 details,
             } => BTreeMap::from([
-                ("server".to_string(), server_name.clone()),
+                ("server".to_string(), server_name.to_string()),
                 ("method".to_string(), (*method).to_string()),
                 ("details".to_string(), details.clone()),
             ]),
@@ -418,7 +418,7 @@ impl McpServerManagerError {
                 method,
                 timeout_ms,
             } => BTreeMap::from([
-                ("server".to_string(), server_name.clone()),
+                ("server".to_string(), server_name.to_string()),
                 ("method".to_string(), (*method).to_string()),
                 ("timeout_ms".to_string(), timeout_ms.to_string()),
             ]),
@@ -426,7 +426,7 @@ impl McpServerManagerError {
                 BTreeMap::from([("qualified_tool".to_string(), qualified_name.clone())])
             }
             Self::UnknownServer { server_name } => {
-                BTreeMap::from([("server".to_string(), server_name.clone())])
+                BTreeMap::from([("server".to_string(), server_name.to_string())])
             }
         }
     }
@@ -444,11 +444,11 @@ fn lifecycle_phase_for_method(method: &str) -> McpLifecyclePhase {
 
 fn unsupported_server_failed_server(server: &UnsupportedMcpServer) -> McpFailedServer {
     McpFailedServer {
-        server_name: server.server_name.clone(),
+        server_name: server.server_name.to_string(),
         phase: McpLifecyclePhase::ServerRegistration,
         error: McpErrorSurface::new(
             McpLifecyclePhase::ServerRegistration,
-            Some(server.server_name.clone()),
+            Some(server.server_name.to_string()),
             server.reason.clone(),
             BTreeMap::from([
                 ("transport".to_string(), format!("{:?}", server.transport)),
@@ -507,12 +507,12 @@ impl McpServerManager {
             if server_config.transport() == McpTransport::Stdio {
                 let bootstrap = McpClientBootstrap::from_scoped_config(server_name, server_config);
                 managed_servers.insert(
-                    server_name.clone(),
+                    server_name.to_string(),
                     ManagedMcpServer::new(bootstrap, server_config.required),
                 );
             } else {
                 unsupported_servers.push(UnsupportedMcpServer {
-                    server_name: server_name.clone(),
+                    server_name: server_name.to_string(),
                     transport: server_config.transport(),
                     required: server_config.required,
                     reason: format!(
@@ -553,7 +553,7 @@ impl McpServerManager {
                 self.tool_index.insert(
                     tool.qualified_name.clone(),
                     ToolRoute {
-                        server_name: tool.server_name.clone(),
+                        server_name: tool.server_name.to_string(),
                         raw_name: tool.raw_name.clone(),
                     },
                 );
@@ -573,13 +573,13 @@ impl McpServerManager {
         for server_name in server_names {
             match self.discover_tools_for_server(&server_name).await {
                 Ok(server_tools) => {
-                    working_servers.push(server_name.clone());
+                    working_servers.push(server_name.to_string());
                     self.clear_routes_for_server(&server_name);
                     for tool in server_tools {
                         self.tool_index.insert(
                             tool.qualified_name.clone(),
                             ToolRoute {
-                                server_name: tool.server_name.clone(),
+                                server_name: tool.server_name.to_string(),
                                 raw_name: tool.raw_name.clone(),
                             },
                         );
@@ -600,11 +600,11 @@ impl McpServerManager {
         let degraded_failed_servers = failed_servers
             .iter()
             .map(|failure| McpFailedServer {
-                server_name: failure.server_name.clone(),
+                server_name: failure.server_name.to_string(),
                 phase: failure.phase,
                 error: McpErrorSurface::new(
                     failure.phase,
-                    Some(failure.server_name.clone()),
+                    Some(failure.server_name.to_string()),
                     failure.error.clone(),
                     {
                         let mut context = failure.context.clone();
@@ -663,7 +663,7 @@ impl McpServerManager {
                 let server = self.server_mut(&route.server_name)?;
                 let process = server.process.as_mut().ok_or_else(|| {
                     McpServerManagerError::InvalidResponse {
-                        server_name: route.server_name.clone(),
+                        server_name: route.server_name.to_string(),
                         method: "tools/call",
                         details: "server process missing after initialization".to_string(),
                     }
