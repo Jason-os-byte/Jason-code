@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# Jason-code
-=======
 # Claw Code
 
 <p align="center">
